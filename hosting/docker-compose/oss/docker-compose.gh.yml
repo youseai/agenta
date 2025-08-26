@@ -20,14 +20,15 @@ services:
             - "traefik.http.routers.web.rule=PathPrefix(`/`)"
             - "traefik.http.routers.web.entrypoints=web"
             - "traefik.http.services.web.loadbalancer.server.port=3000"
+            - "traefik.enable=false"
 
         command: sh -c "node ./oss/server.js"
         restart: always
 
     api:
-        build:
-            context: ../../../api
-            dockerfile: oss/docker/Dockerfile.gh
+        # build:
+        #     context: ../../../api
+        #     dockerfile: oss/docker/Dockerfile.gh
 
         image: ghcr.io/agenta-ai/${AGENTA_API_IMAGE_NAME:-agenta-api}:${AGENTA_API_IMAGE_TAG:-latest}
 
@@ -43,6 +44,7 @@ services:
             - "traefik.http.routers.api.middlewares=api-strip"
             - "traefik.http.services.api.loadbalancer.server.port=8000"
             - "traefik.http.routers.api.service=api"
+            - "traefik.enable=false"
 
         env_file:
             - ${ENV_FILE:-./.env.oss.gh}
@@ -57,9 +59,9 @@ services:
         restart: always
 
     worker:
-        build:
-            context: ../../../api
-            dockerfile: oss/docker/Dockerfile.gh
+        # build:
+        #     context: ../../../api
+        #     dockerfile: oss/docker/Dockerfile.gh
 
         image: ghcr.io/agenta-ai/${AGENTA_API_IMAGE_NAME:-agenta-api}:${AGENTA_API_IMAGE_TAG:-latest}
 
@@ -81,9 +83,9 @@ services:
         restart: always
 
     alembic:
-        build:
-            context: ../../../api
-            dockerfile: oss/docker/Dockerfile.gh
+        # build:
+        #     context: ../../../api
+        #     dockerfile: oss/docker/Dockerfile.gh
 
         image: ghcr.io/agenta-ai/${AGENTA_API_IMAGE_NAME:-agenta-api}:${AGENTA_API_IMAGE_TAG:-latest}
 
@@ -100,9 +102,9 @@ services:
                 condition: service_healthy
 
     completion:
-        build:
-            context: ../../../services/completion
-            dockerfile: oss/docker/Dockerfile.gh
+        # build:
+        #     context: ../../../services/completion
+        #     dockerfile: oss/docker/Dockerfile.gh
 
         image: ghcr.io/agenta-ai/agenta-completion
 
@@ -118,6 +120,7 @@ services:
             - "traefik.http.routers.completion.middlewares=completion-strip"
             - "traefik.http.services.completion.loadbalancer.server.port=80"
             - "traefik.http.routers.completion.service=completion"
+            - "traefik.enable=false"
 
         env_file:
             - ${ENV_FILE:-./.env.oss.gh}
@@ -145,6 +148,8 @@ services:
             - "traefik.http.routers.chat.middlewares=chat-strip"
             - "traefik.http.services.chat.loadbalancer.server.port=80"
             - "traefik.http.routers.chat.service=chat"
+            - "traefik.enable=false"
+            
         networks:
             - agenta-oss-gh-network
 
@@ -166,14 +171,13 @@ services:
         env_file:
             - ${ENV_FILE:-./.env.oss.gh}
 
-        ports:
-            - "${POSTGRES_PORT:-5432}:5432"
 
         healthcheck:
-            test: [ "CMD-SHELL", "pg_isready -U username -d agenta_oss_core" ]
-            interval: 10s
-            timeout: 5s
-            retries: 5
+          test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME} -d agenta_oss_core" ]
+          interval: 10s
+          timeout: 5s
+          retries: 5
+
 
     rabbitmq:
         image: rabbitmq:3-management
@@ -186,10 +190,6 @@ services:
 
         env_file:
             - ${ENV_FILE:-./.env.oss.gh}
-
-        ports:
-            - "${RABBITMQ_PORT:-5672}:5672"
-            - "${RABBITMQ_UI_PORT:-15672}:15672"
 
         restart: always
 
@@ -210,8 +210,6 @@ services:
         command: >
             redis-server --port 6378 --appendonly no --appendfsync no --save "" --maxmemory 128mb --maxmemory-policy allkeys-lru
 
-        ports:
-            - "6378:6378"
 
         volumes:
             - cache-data:/data
@@ -231,27 +229,7 @@ services:
             retries: 5
             start_period: 5s
 
-    traefik:
-        image: traefik:v2.10
-        profiles:
-            - with-traefik
-        volumes:
-            - /var/run/docker.sock:/var/run/docker.sock
-        networks:
-            - agenta-oss-gh-network
 
-        command:
-            - --api.dashboard=true
-            - --providers.docker
-            - --entrypoints.web.address=:${TRAEFIK_PORT:-80}
-        env_file:
-            - ${ENV_FILE:-./.env.oss.gh}
-
-        ports:
-            - "${TRAEFIK_PORT:-80}:${TRAEFIK_PORT:-80}"
-            - "${TRAEFIK_UI_PORT:-8080}:8080"
-
-        restart: always
 
     nginx:
       image: nginx:latest
@@ -283,8 +261,6 @@ services:
         depends_on:
             postgres:
                 condition: service_healthy
-        ports:
-            - "${SUPERTOKENS_PORT:-3567}:3567"
 
         env_file:
             - ${ENV_FILE:-./.env.oss.gh}
