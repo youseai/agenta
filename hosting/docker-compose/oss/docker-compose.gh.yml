@@ -160,6 +160,12 @@ services:
     postgres:
         image: postgres:16.2
 
+        environment:
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+            # optional - leave default DB as 'postgres'
+            POSTGRES_DB: postgres
+
         volumes:
             - postgres-data:/var/lib/postgresql/data/
             - ../../../api/oss/databases/postgres/init-db-oss.sql:/docker-entrypoint-initdb.d/init-db.sql
@@ -170,13 +176,13 @@ services:
 
         env_file:
             - ${ENV_FILE:-./.env.oss.gh}
-
-
+        
         healthcheck:
-          test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME} -d agenta_oss_core" ]
+          test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d postgres" ]
           interval: 10s
           timeout: 5s
-          retries: 5
+          retries: 10
+
 
 
     rabbitmq:
