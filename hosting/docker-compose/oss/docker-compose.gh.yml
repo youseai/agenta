@@ -26,9 +26,9 @@ services:
         restart: always
 
     api:
-        # build:
-        #     context: ../../../api
-        #     dockerfile: oss/docker/Dockerfile.gh
+        build:
+            context: ../../../api
+            dockerfile: oss/docker/Dockerfile.gh
 
         image: ghcr.io/agenta-ai/${AGENTA_API_IMAGE_NAME:-agenta-api}:${AGENTA_API_IMAGE_TAG:-latest}
 
@@ -59,9 +59,9 @@ services:
         restart: always
 
     worker:
-        # build:
-        #     context: ../../../api
-        #     dockerfile: oss/docker/Dockerfile.gh
+        build:
+            context: ../../../api
+            dockerfile: oss/docker/Dockerfile.gh
 
         image: ghcr.io/agenta-ai/${AGENTA_API_IMAGE_NAME:-agenta-api}:${AGENTA_API_IMAGE_TAG:-latest}
 
@@ -83,9 +83,9 @@ services:
         restart: always
 
     alembic:
-        # build:
-        #     context: ../../../api
-        #     dockerfile: oss/docker/Dockerfile.gh
+        build:
+            context: ../../../api
+            dockerfile: oss/docker/Dockerfile.gh
 
         image: ghcr.io/agenta-ai/${AGENTA_API_IMAGE_NAME:-agenta-api}:${AGENTA_API_IMAGE_TAG:-latest}
 
@@ -102,9 +102,9 @@ services:
                 condition: service_healthy
 
     completion:
-        # build:
-        #     context: ../../../services/completion
-        #     dockerfile: oss/docker/Dockerfile.gh
+        build:
+            context: ../../../services/completion
+            dockerfile: oss/docker/Dockerfile.gh
 
         image: ghcr.io/agenta-ai/agenta-completion
 
