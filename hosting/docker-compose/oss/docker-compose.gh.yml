@@ -254,25 +254,28 @@ services:
         restart: always
 
     nginx:
-        image: nginx:latest
-        profiles:
-            - with-nginx
-        volumes:
-            - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      image: nginx:latest
+      profiles:
+        - with-nginx
+      volumes:
+        - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      env_file:
+        - ${ENV_FILE:-./.env.oss.gh}
+      networks:
+        - agenta-oss-gh-network
+        - dokploy-network
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.agenta.rule=Host(`${TRAEFIK_DOMAIN}`)"
+        - "traefik.http.routers.agenta.entrypoints=websecure"
+        - "traefik.http.routers.agenta.tls=true"
+        - "traefik.http.services.agenta.loadbalancer.server.port=80"
+      depends_on:
+        - api
+        - web
+      restart: always
 
-        networks:
-            - agenta-oss-gh-network
 
-        env_file:
-            - ${ENV_FILE:-./.env.oss.gh}
-
-        ports:
-            - "${NGINX_PORT:-80}:80"
-        restart: always
-
-        depends_on:
-            - api
-            - web
 
     supertokens:
         image: registry.supertokens.io/supertokens/supertokens-postgresql
@@ -301,6 +304,8 @@ services:
 
 networks:
     agenta-oss-gh-network:
+    dokploy-network:
+        external: true
 
 volumes:
     postgres-data:
